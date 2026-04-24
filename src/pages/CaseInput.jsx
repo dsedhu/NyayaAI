@@ -4,6 +4,24 @@ import { CASE_TYPES, JURISDICTIONS, LEGAL_ISSUES, EVIDENCE_LEVELS } from '../dat
 import { SparklesIcon, ArrowRightIcon, MicIcon } from '../components/Icons';
 import DisclaimerBanner from '../components/DisclaimerBanner';
 
+const INDIAN_LANGUAGES = [
+  { code: 'en-IN', label: 'English', native: 'English' },
+  { code: 'hi-IN', label: 'Hindi', native: 'हिन्दी' },
+  { code: 'bn-IN', label: 'Bengali', native: 'বাংলা' },
+  { code: 'te-IN', label: 'Telugu', native: 'తెలుగు' },
+  { code: 'ta-IN', label: 'Tamil', native: 'தமிழ்' },
+  { code: 'mr-IN', label: 'Marathi', native: 'मराठी' },
+  { code: 'gu-IN', label: 'Gujarati', native: 'ગુજરાતી' },
+  { code: 'kn-IN', label: 'Kannada', native: 'ಕನ್ನಡ' },
+  { code: 'ml-IN', label: 'Malayalam', native: 'മലയാളം' },
+  { code: 'pa-IN', label: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
+  { code: 'or-IN', label: 'Odia', native: 'ଓଡ଼ିଆ' },
+  { code: 'as-IN', label: 'Assamese', native: 'অসমীয়া' },
+  { code: 'ur-IN', label: 'Urdu', native: 'اردو' },
+  { code: 'ne-NP', label: 'Nepali', native: 'नेपाली' },
+  { code: 'sa-IN', label: 'Sanskrit', native: 'संस्कृतम्' },
+];
+
 const STEPS = [
   {
     id: 'welcome',
@@ -56,6 +74,7 @@ export default function CaseInput() {
   const [selectedMulti, setSelectedMulti] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [voiceLang, setVoiceLang] = useState('en-IN');
   const recognitionRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -67,7 +86,7 @@ export default function CaseInput() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = 'en-IN';
+    recognition.lang = voiceLang;
     recognition.interimResults = false;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
@@ -88,7 +107,7 @@ export default function CaseInput() {
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [speechSupported, isListening]);
+  }, [speechSupported, isListening, voiceLang]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -265,24 +284,52 @@ export default function CaseInput() {
                 </button>
               )}
             </div>
-            {isListening && (
+            {speechSupported && (
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '10px',
                 marginTop: '8px',
-                fontSize: '0.82rem',
-                color: 'var(--gold)',
               }}>
-                <span style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: '#ff4444',
-                  animation: 'voicePulse 1s infinite',
-                  display: 'inline-block',
-                }} />
-                Listening... speak now
+                <select
+                  value={voiceLang}
+                  onChange={(e) => setVoiceLang(e.target.value)}
+                  style={{
+                    background: 'var(--dark-3)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--dark-4)',
+                    borderRadius: '8px',
+                    padding: '6px 10px',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                >
+                  {INDIAN_LANGUAGES.map((lang) => (
+                    <option key={lang.code} value={lang.code}>
+                      {lang.native} ({lang.label})
+                    </option>
+                  ))}
+                </select>
+                {isListening && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.82rem',
+                    color: 'var(--gold)',
+                  }}>
+                    <span style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#ff4444',
+                      animation: 'voicePulse 1s infinite',
+                      display: 'inline-block',
+                    }} />
+                    Listening... speak now
+                  </div>
+                )}
               </div>
             )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '10px' }}>
