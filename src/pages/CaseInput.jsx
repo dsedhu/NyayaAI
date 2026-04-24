@@ -74,7 +74,8 @@ export default function CaseInput() {
   const [selectedMulti, setSelectedMulti] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [voiceLang, setVoiceLang] = useState('en-IN');
+  const [voiceLang, setVoiceLang] = useState('auto');
+  const [showLangPicker, setShowLangPicker] = useState(false);
   const recognitionRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -86,7 +87,9 @@ export default function CaseInput() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = voiceLang;
+    if (voiceLang !== 'auto') {
+      recognition.lang = voiceLang;
+    }
     recognition.interimResults = false;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
@@ -288,29 +291,29 @@ export default function CaseInput() {
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                flexWrap: 'wrap',
+                gap: '8px',
                 marginTop: '8px',
               }}>
-                <select
-                  value={voiceLang}
-                  onChange={(e) => setVoiceLang(e.target.value)}
+                <button
+                  type="button"
+                  onClick={() => setShowLangPicker((p) => !p)}
                   style={{
-                    background: 'var(--dark-3)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--dark-4)',
-                    borderRadius: '8px',
-                    padding: '6px 10px',
-                    fontSize: '0.8rem',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.78rem',
                     cursor: 'pointer',
-                    outline: 'none',
+                    padding: '2px 0',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '3px',
                   }}
                 >
-                  {INDIAN_LANGUAGES.map((lang) => (
-                    <option key={lang.code} value={lang.code}>
-                      {lang.native} ({lang.label})
-                    </option>
-                  ))}
-                </select>
+                  🌐 {voiceLang === 'auto'
+                    ? 'Auto-detect language'
+                    : INDIAN_LANGUAGES.find((l) => l.code === voiceLang)?.native || voiceLang
+                  } ▾
+                </button>
                 {isListening && (
                   <div style={{
                     display: 'flex',
@@ -327,7 +330,39 @@ export default function CaseInput() {
                       animation: 'voicePulse 1s infinite',
                       display: 'inline-block',
                     }} />
-                    Listening... speak now
+                    Listening...
+                  </div>
+                )}
+                {showLangPicker && (
+                  <div style={{
+                    width: '100%',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '6px',
+                    padding: '10px',
+                    background: 'var(--dark-3)',
+                    borderRadius: '10px',
+                    border: '1px solid var(--dark-4)',
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => { setVoiceLang('auto'); setShowLangPicker(false); }}
+                      className={`multi-pill ${voiceLang === 'auto' ? 'active' : ''}`}
+                      style={{ fontSize: '0.78rem' }}
+                    >
+                      🌐 Auto-detect
+                    </button>
+                    {INDIAN_LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => { setVoiceLang(lang.code); setShowLangPicker(false); }}
+                        className={`multi-pill ${voiceLang === lang.code ? 'active' : ''}`}
+                        style={{ fontSize: '0.78rem' }}
+                      >
+                        {lang.native}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
