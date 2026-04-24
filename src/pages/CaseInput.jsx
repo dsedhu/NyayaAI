@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CASE_TYPES, JURISDICTIONS, LEGAL_ISSUES, EVIDENCE_LEVELS } from '../data/legalData';
-import { SparklesIcon, ArrowRightIcon } from '../components/Icons';
+import { SparklesIcon, ArrowRightIcon, MicIcon } from '../components/Icons';
 import DisclaimerBanner from '../components/DisclaimerBanner';
 
 const STEPS = [
@@ -55,7 +55,47 @@ export default function CaseInput() {
   const [inputValue, setInputValue] = useState('');
   const [selectedMulti, setSelectedMulti] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
   const messagesEndRef = useRef(null);
+
+  const speechSupported = typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
+  const startListening = useCallback(() => {
+    if (!speechSupported || isListening) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInputValue((prev) => prev ? prev + ' ' + transcript : transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [speechSupported, isListening]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  }, []);
 
   useEffect(() => {
     // Add initial bot message
@@ -184,19 +224,67 @@ export default function CaseInput() {
       case 'textarea':
         return (
           <div>
-            <textarea
-              className="chat-textarea"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder={step.placeholder}
-              rows={4}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleFactsSubmit();
-                }
-              }}
-            />
+            <div style={{ position: 'relative' }}>
+              <textarea
+                className="chat-textarea"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={step.placeholder}
+                rows={4}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleFactsSubmit();
+                  }
+                }}
+              />
+              {speechSupported && (
+                <button
+                  className={`voice-btn ${isListening ? 'listening' : ''}`}
+                  onClick={isListening ? stopListening : startListening}
+                  title={isListening ? 'Stop listening' : 'Voice input'}
+                  type="button"
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    bottom: '12px',
+                    background: isListening ? 'var(--gold)' : 'rgba(255,215,0,0.15)',
+                    border: isListening ? '2px solid var(--gold)' : '2px solid rgba(255,215,0,0.3)',
+                    borderRadius: '50%',
+                    width: '42px',
+                    height: '42px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    animation: isListening ? 'voicePulse 1.5s infinite' : 'none',
+                  }}
+                >
+                  <MicIcon size={18} color={isListening ? '#000' : '#FFD700'} />
+                </button>
+              )}
+            </div>
+            {isListening && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '8px',
+                fontSize: '0.82rem',
+                color: 'var(--gold)',
+              }}>
+                <span style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#ff4444',
+                  animation: 'voicePulse 1s infinite',
+                  display: 'inline-block',
+                }} />
+                Listening... speak now
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '10px' }}>
               <button className="btn btn-primary btn-sm" onClick={handleFactsSubmit} disabled={!inputValue.trim()}>
                 Continue <ArrowRightIcon size={14} />
