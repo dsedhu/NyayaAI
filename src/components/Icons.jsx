@@ -3,12 +3,29 @@ import React from 'react';
 // ===== Scale of Justice =====
 export function ScaleIcon({ size = 24, color = 'currentColor' }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2v20" />
-      <path d="M2 7h20" />
-      <path d="M5 7l-3 9h6L5 7z" />
-      <path d="M19 7l-3 9h6l-3-9z" />
-      <circle cx="12" cy="2" r="1" fill={color} />
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Pillar */}
+      <rect x="22" y="8" width="4" height="30" rx="2" fill={color} />
+      {/* Base */}
+      <rect x="12" y="38" width="24" height="4" rx="2" fill={color} />
+      <rect x="16" y="36" width="16" height="3" rx="1.5" fill={color} />
+      {/* Top crown */}
+      <circle cx="24" cy="6" r="3.5" fill={color} />
+      <circle cx="24" cy="6" r="1.8" fill="#000" />
+      {/* Beam */}
+      <rect x="4" y="12" width="40" height="3" rx="1.5" fill={color} />
+      {/* Left pan chain */}
+      <line x1="8" y1="15" x2="6" y2="24" stroke={color} strokeWidth="1.5" />
+      <line x1="16" y1="15" x2="14" y2="24" stroke={color} strokeWidth="1.5" />
+      {/* Left pan */}
+      <path d="M3 24 Q10 32 17 24 Z" fill={color} opacity="0.85" />
+      <ellipse cx="10" cy="24" rx="7" ry="1.2" fill={color} />
+      {/* Right pan chain */}
+      <line x1="32" y1="15" x2="34" y2="24" stroke={color} strokeWidth="1.5" />
+      <line x1="40" y1="15" x2="42" y2="24" stroke={color} strokeWidth="1.5" />
+      {/* Right pan */}
+      <path d="M31 24 Q38 32 45 24 Z" fill={color} opacity="0.85" />
+      <ellipse cx="38" cy="24" rx="7" ry="1.2" fill={color} />
     </svg>
   );
 }
